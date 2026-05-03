@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+    <head>
+        <meta charset="utf-8">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js" integrity="sha384-bPV3mA2eo3edoq56VzcPBmG1N1QVUfjYMxVIJPPzyFJyFZ8GFfN7Npt06Zr23qts" crossorigin="anonymous"></script>
+        <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?version=4.8.0&features=Promise%2CString.prototype.includes%2CCustomEvent%2CArray.prototype.includes%2CArray.prototype.find%2CObject.assign%2CObject.values%2CObject.entries%2CArray.from%2CSet%2CArray.prototype.findIndex%2Cfetch"></script>
+<script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/javascript-canvas-to-blob/3.15.0/js/canvas-to-blob.min.js"></script>
+
+        <script>
+// This is where we initialise any global variables, namespaced in "opensdg".
+var opensdg = {
+
+  // A base URL for asynchronous calls to SDG data.
+  remoteDataBaseUrl: 'https://open-sdg.org/open-sdg-data-starter/en',
+
+  chartConfigAlterations: [],
+  // A hook which can be used to modify the configuration for Chart.js.
+  chartConfigAlter: function(callback) {
+    this.chartConfigAlterations.push(callback);
+  },
+
+  tableConfigAlterations: [],
+  // A hook which can be used to modify the configuration for Datatables.
+  tableConfigAlter: function(callback) {
+    this.tableConfigAlterations.push(callback);
+  },
+
+  // A hook which can be replaced to alter whether/how the values that are
+  // displayed on indicator tables/graphs get rounded. A "context" parameter
+  // is also passed which contains additional information.
+  dataRounding: function(value, context) {
+    // Alterations go here.
+    return value;
+  },
+
+  // A hook which can be used to alter the data before it is displayed on charts/tables.
+  dataDisplayAlterations: [],
+  dataDisplayAlter: function(callback) {
+    this.dataDisplayAlterations.push(callback);
+  },
+
+  // Disaggregations which should be ignored on indicator pages.
+  ignoredDisaggregations: null,
+
+  language: 'en',
+
+  language_numbers: 'en',
+
+  mapColors: {
+    "default": [
+        "#c4e1c6",
+        "#b0d1b3",
+        "#9bc2a1",
+        "#87b28f",
+        "#74a37c",
+        "#60946b",
+        "#4d8559",
+        "#3a7747",
+        "#276836"
+    ]
+},
+};
+
+</script>
+
+        <script>
+// JavaScript container for translation data.
+var translations = {
+  //Javascript version of the "t" filter from jekyll-open-sdg-plugins.
+  t: function(key) {
+
+    if (!key || typeof key !== 'string') {
+      return '';
+    }
+
+    // The majority of uses of this function are to translate disaggregation
+    // data. To spare data providers of needing to enter "data." in front of
+    // their disaggregation data, we specifically look for that here.
+    if (typeof this.data === 'object' && this.data !== null && this.data[key]) {
+      return this.data[key];
+    }
+
+    var originalKey = key;
+    var drilled = this;
+    var levelsDrilled = 0;
+    var levels = key.split('.');
+
+    for (var level in levels) {
+      // If we have drilled down to soon, abort.
+      if (typeof drilled !== 'object') {
+        break;
+      }
+
+      if (levels[level] in drilled) {
+        drilled = drilled[levels[level]];
+        levelsDrilled += 1;
+      }
+    }
+
+    // If we didn't drill the right number of levels, return the original string.
+    if (levels.length != levelsDrilled) {
+      return originalKey;
+    }
+
+    // Otherwise we must have drilled all the way.
+    return drilled;
+  },
+};
+</script>
+
+        <!-- Basic Page Needs
+        ================================================== -->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- Mobile Specific Metas
+        ================================================== -->
+        <meta name="HandheldFriendly" content="True">
+        <meta name="MobileOptimized" content="320">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- Title and meta description
+        ================================================== -->
+
+        
+    <title>Edit Configuration: 1.1.1 - Indicators For The Sustainable Development Goals</title>
+
+
+
+        
+        <meta name="robots" content="noindex, nofollow">
+        
+
+        <!--[if IE 9]>
+        <script src="/odd-senegal-site/assets/js/lib/classList.js"></script>
+        <![endif]-->
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/odd-senegal-site/assets/img/favicons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/odd-senegal-site/assets/img/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/odd-senegal-site/assets/img/favicons/favicon-16x16.png">
+<link rel="icon" type="image/x-icon" href="/odd-senegal-site/assets/img/favicons/favicon.ico" />
+
+        
+
+        
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link res="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" crossorigin="">
+        <link rel="stylesheet" href="/odd-senegal-site/assets/css/style.css?v=20260503132522">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"
+          integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+          crossorigin=""/>
+        <link rel="stylesheet" href="https://cdn.rawgit.com/socib/Leaflet.TimeDimension/master/dist/leaflet.timedimension.control.min.css"  crossorigin=""/>
+        <link rel="stylesheet" href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css'  crossorigin=""/>
+        <link rel="stylesheet" href="https://bowercdn.net/c/leaflet.zoomhome-latest/dist/leaflet.zoomhome.css"  crossorigin=""/>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-search@2.9.7/dist/leaflet-search.min.css" crossorigin="">
+        <link rel="stylesheet" href="https://cdn.kiprotect.com/klaro/v0.7/klaro.min.css" crossorigin=""/>
+        
+
+        
+
+
+        <!--[if IE]>
+        <link rel="stylesheet" href="/odd-senegal-site/assets/css/ie.css">
+        <![endif]-->
+
+        
+
+    </head>
+<body class="language-en
+layout-config-builder
+">
+<!-- <div class="container"> -->
+
+<script>translations['header'] = {"alpha":"Alpha","default_contrast":"Default contrast","disable_high_contrast":"Disable high contrast","disclaimer":"This is a development website. We welcome your <a href=\"mailto:%email_contacts.suggestions\">feedback</a>.","enable_high_contrast":"Enable high contrast","hide_menu":"Hide navigation menu","high_contrast":"High contrast","internet_explorer_message":"We have detected that you are using Internet Explorer to visit this website. Internet Explorer is now being phased out by Microsoft. As a result, this website no longer supports any version of Internet Explorer. Some features on this site will not work. You should use a modern browser such as Edge, Chrome, Firefox, or Safari. If you have difficulty installing or accessing a different browser, please contact your IT support team.","internet_explorer_message_title":"This internet browser is no longer supported","logo_title":"Go to homepage","show_menu":"Show navigation menu","skip_link":"Skip to main content","tag_line":"17 Goals to Transform our World","toggle_menu":"Menu toggle. Click to expand or collapse the menu.","toggle_search":"Search toggle. Click to expand or collapse the search bar."};</script>
+
+<a class="sr-only-focusable" id="skiplink" href="#main-content" tabindex="0">Skip to main content</a>
+<div class="container internet-explorer-message">
+    <h2 class="internet-explorer-message-title">This internet browser is no longer supported</h2>
+    <p class="internet-explorer-message-body">We have detected that you are using Internet Explorer to visit this website. Internet Explorer is now being phased out by Microsoft. As a result, this website no longer supports any version of Internet Explorer. Some features on this site will not work. You should use a modern browser such as Edge, Chrome, Firefox, or Safari. If you have difficulty installing or accessing a different browser, please contact your IT support team.</p>
+</div>
+<div id="disclaimer">
+    
+<div class="container">
+  <div class="disclaimer-alert">
+    <strong class="phase-tag">Alpha</strong>
+    
+    This is a development website. We welcome your <a href="mailto:test@example.com">feedback</a>.
+    
+  </div>
+</div>
+
+</div>
+
+<header role="banner" class="">
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light flex-wrap align-items-start">
+            <a class="navbar-brand" href="/odd-senegal-site/" id="home" aria-label="Go to homepage" title="Go to homepage">
+    <img src="/odd-senegal-site/assets/img/SDG_logo.png" alt="Sustainable Development Goals - 17 Goals to Transform our World" />
+</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Show navigation menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="d-flex flex-wrap w-100 justify-content-between">
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav" id="menu"><li class="nav-item ">
+    <a class="nav-link" href="/odd-senegal-site/">Home</a>
+</li><li class="nav-item ">
+    <a class="nav-link" href="/odd-senegal-site/goals">Goals</a>
+</li><li class="nav-item ">
+    <a class="nav-link" href="/odd-senegal-site/reporting-status">Reporting Status</a>
+</li><li class="nav-item ">
+    <a class="nav-link" href="/odd-senegal-site/news">Updates</a>
+</li><li class="nav-item ">
+    <a class="nav-link" href="/odd-senegal-site/faq">FAQ</a>
+</li><li class="nav-item ">
+    <a class="nav-link" href="/odd-senegal-site/about">About us</a>
+</li></ul>
+    
+                </div>
+                <div class="header-search-bar">
+                    <form class="align-self-lg-end" id="search" action="/odd-senegal-site/search/">
+    <div class="input-group">
+        <label class="visually-hidden" for="indicator_search">Search</label>
+        <input class="form-control" type="search" name="q" id="indicator_search" title="Search">
+        <span class="input-group-append">
+            <button class="btn btn-outline-secondary ms-n5" aria-label="Site search" id="search-btn" type="submit">
+                <i class="fa fa-search"></i>
+            </button>
+        </span>
+    </div>
+</form>
+
+                </div>
+                <div class="header-toggles d-flex">
+
+
+
+
+
+  <div class="language-toggle-container">
+  
+  <div class="btn-group language-toggle-dropdown  dropdown">
+    <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="fa fa-globe"></i>
+      English
+    </button>
+    <ul class="dropdown-menu"><li>
+            <a class="dropdown-item" href="/odd-senegal-site/es/1-1-1/config/">
+              Español
+            </a>
+          </li></ul>
+  </div>
+</div>
+
+
+
+                    <span class="no-js-language-toggle"><div class="language-toggle-container d-flex">
+    <i class="fa fa-globe language-toggle-globe-links"></i>
+    <ul class="language-toggle-links list-unstyled list-inline"><li class="language-option-es list-inline-item">
+            <a class="language-toggle-link" href="/odd-senegal-site/es/1-1-1/config/">
+                Español
+            </a>
+        </li></ul>
+</div></span><a title="Enable high contrast" aria-label="Enable high contrast"
+    data-contrast-switch-to="" role="button" href="javascript:void(0)" data-on="click"
+data-event-category="Accessibility"
+data-event-action="Change contrast setting"
+data-event-label="high"
+>A</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>
+<div id="top" tabindex=-1></div>
+
+
+<div id="main-content" class="container" role="main">
+  <div class="row">
+    <div class="col-md-12"><h1>Edit Configuration: 1.1.1</h1></div>
+  </div>
+  <div class="row">
+    <div id="root"></div>
+  </div>
+  <script>
+    opensdg.configForm = {
+      schema: null,
+      uiSchema: null,
+      initialData: null,
+      configFilename: "1-1-1.yml",
+      configFolder: null,
+      githubClientId: null,
+      githubProxyUrl: null,
+      githubRepo: null,
+      githubOwner: null,
+      repositoryLink: "/tree/develop/indicator-config",
+      configType: "indicator",
+    };
+    
+      opensdg.configForm.schema = {
+    "type": "object",
+    "title": "Open SDG indicator configuration",
+    "description": "This form will produce an indicator's configuration for your Open SDG implementation.",
+    "properties": {
+        "auto_progress_calculation": {
+            "title": "Automatic progress calculation",
+            "type": "boolean",
+            "description": "This setting can be toggled on to enable automatic progress calculation for the indicator."
+        },
+        "composite_breakdown_label": {
+            "type": "string",
+            "title": "Composite breakdown label",
+            "description": "Used as a label for the COMPOSITE_BREAKDOWN column, if it appears in the indicator data."
+        },
+        "computation_units": {
+            "type": "string",
+            "title": "Unit of measurement",
+            "description": "Unit of measurement which displays below the indicator chart."
+        },
+        "copyright": {
+            "type": "string",
+            "title": "Copyright",
+            "description": "Copyright which displays below the indicator chart."
+        },
+        "data_footnote": {
+            "type": "string",
+            "title": "Footnote",
+            "description": "Footnote which displays below the indicator chart."
+        },
+        "data_non_statistical": {
+            "title": "Non-statistical data",
+            "type": "boolean",
+            "description": "Whether the indicator is statistical (can be charted/graphed) or not."
+        },
+        "data_notice_class": {
+            "title": "Data notice - class",
+            "type": "string",
+            "description": "A CSS class to apply to the data notice for this indicator."
+        },
+        "data_notice_heading": {
+            "title": "Data notice - heading",
+            "type": "string",
+            "description": "A title to display above the data notice for this indicator."
+        },
+        "data_notice_text": {
+            "title": "Data notice - text",
+            "type": "string",
+            "description": "Text to display as a data notice for this indicator, intended to contain very important information which site viewers must keep in mind when using the data provided."
+        },
+        "data_show_map": {
+            "title": "Show map",
+            "type": "boolean",
+            "description": "Whether the indicator should display a Map tab."
+        },
+        "data_start_values": {
+            "type": "array",
+            "title": "Starting values",
+            "description": "Disaggregation values for a an indicator to start with already selected",
+            "items": {
+                "type": "object",
+                "title": "Starting value",
+                "properties": {
+                    "field": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Field",
+                        "description": "The field (column) name."
+                    },
+                    "value": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Value",
+                        "description": "The value in that field to pre-select."
+                    }
+                }
+            }
+        },
+        "embedded_feature_footer": {
+            "type": "string",
+            "title": "Embedded feature - Footer",
+            "description": "A footer that displays below the embedded feature. Only used with either embedded_feature_url or embedded_feature_html."
+        },
+        "embedded_feature_html": {
+            "type": "string",
+            "title": "Embedded feature - HTML",
+            "description": "Any HTML to display in another tab, after Chart/Table/etc."
+        },
+        "embedded_feature_tab_title": {
+            "type": "string",
+            "title": "Embedded feature - Tab Title",
+            "description": "A title for the embedded feature tab (ie, Chart/Table/[this]). Only used with either embedded_feature_url or embedded_feature_html."
+        },
+        "embedded_feature_title": {
+            "type": "string",
+            "title": "Embedded feature - Title",
+            "description": "A title that displays above the embedded feature. Only used with either embedded_feature_url or embedded_feature_html."
+        },
+        "embedded_feature_url": {
+            "type": "string",
+            "title": "Embedded feature - URL",
+            "description": "Any URL to display as an iframe in another tab, after Chart/Table/etc."
+        },
+        "expected_disaggregations": {
+            "type": "array",
+            "title": "Expected disaggregations",
+            "description": "An optional list of disaggregations (ie, data column names) to use when calculating the disaggregation status statistics.",
+            "items": {
+                "type": "string",
+                "title": "Expected disaggregation"
+            }
+        },
+        "footer_fields": {
+            "type": "array",
+            "title": "Footer fields",
+            "description": "Additional arbitrary information to display beneath the graph/table.",
+            "items": {
+                "type": "object",
+                "title": "Footer field",
+                "allOf": [
+                    { "$ref": "#/definitions/series_unit_constraint" },
+                    {
+                        "properties": {
+                            "label": {
+                                "type": "string",
+                                "title": "Label",
+                                "description": "The label for the field"
+                            },
+                            "value": {
+                                "type": "string",
+                                "title": "Value",
+                                "description": "The value/content for the field"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "graph_annotations": {
+            "type": "array",
+            "title": "Graph annotations",
+            "description": "This can be used to add line annotations to the graph, such as target lines to show the progress towards the 2030 goal for an indicator.",
+            "items": {
+                "type": "object",
+                "title": "Graph annotation",
+                "allOf": [
+                    { "$ref": "#/definitions/series_unit_constraint" },
+                    {
+                        "properties": {
+                            "value": {
+                                "type": "number",
+                                "minimum": 0,
+                                "title": "Value",
+                                "description": "The value at which to draw the line. For horizontal lines, this number corresponds to your actual data. For vertical lines, this number should be between 0 (the left side of the chart) and the number of years minus 1 (the right side of the chart)."
+                            },
+                            "endValue": {
+                                "type": "number",
+                                "title": "End value",
+                                "description": "Optionally add a different ending value for the line."
+                            },
+                            "description": {
+                                "type": "string",
+                                "title": "Description",
+                                "description": "A description of the annotation to be read by screenreaders."
+                            },
+                            "mode": {
+                                "type": "string",
+                                "title": "Mode",
+                                "description": "Whether the line will be vertical or horizontal.",
+                                "enum": ["horizontal", "vertical"]
+                            },
+                            "borderColor": {
+                                "type": "string",
+                                "title": "Line color",
+                                "default": "#949494",
+                                "description": "The color of the line."
+                            },
+                            "borderDash": {
+                                "type": "array",
+                                "title": "Line dash type",
+                                "description": "The type of line dash.",
+                                "default": [10, 5],
+                                "items": {
+                                    "type": "number"
+                                },
+                                "minItems": 2
+                            },
+                            "label": {
+                                "type": "object",
+                                "title": "Label",
+                                "description": "A text label for the annotation.",
+                                "properties": {
+                                    "position": {
+                                        "type": "string",
+                                        "title": "Position",
+                                        "description": "Placement of the label along the line.",
+                                        "enum": [
+                                            "top",
+                                            "bottom",
+                                            "left",
+                                            "right",
+                                            "center"
+                                        ]
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "title": "Content",
+                                        "description": "Text of the line label."
+                                    },
+                                    "fontColor": {
+                                        "type": "string",
+                                        "title": "Label color",
+                                        "description": "Color for the label text.",
+                                        "default": "#000000"
+                                    },
+                                    "backgroundColor": {
+                                        "type": "string",
+                                        "default": "#ffffff",
+                                        "title": "Background color",
+                                        "description": "Background color for the label text."
+                                    }
+                                }
+                            },
+                            "highContrast": {
+                                "type": "object",
+                                "title": "High contrast options",
+                                "description": "High-contrast overrides of certain color.",
+                                "properties": {
+                                    "borderColor": {
+                                        "type": "string",
+                                        "default": "#ffffff",
+                                        "title": "High-contrast line color",
+                                        "description": "The color of the line in high-contrast mode."
+                                    },
+                                    "label": {
+                                        "type": "object",
+                                        "title": "High contrast label",
+                                        "description": "High-contrast version of the label.",
+                                        "properties": {
+                                            "fontColor": {
+                                                "type": "string",
+                                                "default": "#ffffff",
+                                                "title": "High-contrast label color",
+                                                "description": "Color for the label text in high-contrast mode."
+                                            },
+                                            "backgroundColor": {
+                                                "type": "string",
+                                                "default": "#000000",
+                                                "title": "High-contrast background color",
+                                                "description": "Background color for the label text in high-contrast mode."
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "graph_limits": {
+            "type": "array",
+            "title": "Graph limits",
+            "description": "A list of min/max limits controlling the lowest/highest values to be shown on the y-axis.",
+            "items": {
+                "type": "object",
+                "title": "Graph limit",
+                "allOf": [
+                    { "$ref": "#/definitions/series_unit_constraint" },
+                    {
+                        "properties": {
+                            "minimum": {
+                                "type": "number",
+                                "minimum": 0,
+                                "title": "Minimum",
+                                "description": "Minimum value for the y axis."
+                            },
+                            "maximum": {
+                                "type": "number",
+                                "minimum": 0,
+                                "title": "Maximum",
+                                "description": "Maximum value for the y axis."
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "graph_series_breaks": {
+            "type": "array",
+            "title": "Graph series breaks",
+            "description": "A list of series break (ie, a gap among the years) lines to display on the graph.",
+            "items": {
+                "type": "object",
+                "title": "Series break",
+                "allOf": [
+                    { "$ref": "#/definitions/series_unit_constraint" },
+                    {
+                        "properties": {
+                            "label_content": {
+                                "type": "string",
+                                "title": "Label content",
+                                "default": "indicator.annotation_series_break",
+                                "description": "The text to display for this series break."
+                            },
+                            "value": {
+                                "type": "number",
+                                "title": "Value",
+                                "description": "The numeric value at which to place the series break. This number should be between 0 (the left side of the chart) and the number of years minus 1 (the right side of the chart)."
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "graph_stacked_disaggregation": {
+            "type": "string",
+            "title": "Stacked disaggregation",
+            "description": "This can be used with the bar graph type to place a certain disaggregation into the same stacked bars."
+        },
+        "graph_target_lines": {
+            "type": "array",
+            "title": "Graph target lines",
+            "description": "A list of target lines to display on the graph.",
+            "items": {
+                "type": "object",
+                "title": "Target line",
+                "allOf": [
+                    { "$ref": "#/definitions/series_unit_constraint" },
+                    {
+                        "properties": {
+                            "label_content": {
+                                "type": "string",
+                                "title": "Label content",
+                                "default": "indicator.annotation_2030_target",
+                                "description": "The text to display for this target line."
+                            },
+                            "value": {
+                                "type": "number",
+                                "title": "Value",
+                                "description": "The numeric value at which to place the target line."
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "graph_title": {
+            "type": "string",
+            "title": "Graph title",
+            "description": "The title that displays above the graph/chart."
+        },
+        "graph_titles": {
+            "type": "array",
+            "title": "Graph titles",
+            "description": "As an alternative to `graph_title`, this can be used to set specific titles for particular units and/or series.",
+            "items": {
+                "type": "object",
+                "title": "Graph title",
+                "allOf": [
+                    { "$ref": "#/definitions/series_unit_constraint" },
+                    {
+                        "properties": {
+                            "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "title": "Title",
+                                "description": "The graph title."
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "graph_type": {
+            "type": "string",
+            "title": "Graph type",
+            "description": "What type of graph to use for the indicator.",
+            "enum": ["line", "bar", "binary"]
+        },
+        "graph_types": {
+            "type": "array",
+            "title": "Graph types",
+            "description": "A more configurable version of 'graph_type' (singular), this setting is used if you would like the chart type to depend on the user-selected unit of measurement or series.",
+            "items": {
+                "type": "object",
+                "title": "Graph title",
+                "allOf": [
+                    { "$ref": "#/definitions/series_unit_constraint" },
+                    {
+                        "properties": {
+                            "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "title": "Type",
+                                "description": "The graph type."
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "indicator_available": {
+            "type": "string",
+            "title": "Indicator available",
+            "description": "An optional sub-title for the indicator, which displays below the indicator name. Intended for cases where the available data is slightly different than the indicator name."
+        },
+        "indicator_name": {
+            "type": "string",
+            "title": "Indicator name",
+            "description": "The name for the indicator, which displays at the top of the indicator page."
+        },
+        "indicator_number": {
+            "type": "string",
+            "title": "Indicator number",
+            "description": "The number (or 'id') for the indicator."
+        },
+        "indicator_tabs": {
+            "type": "object",
+            "title": "Indicator tabs",
+            "description": "Assign content for the indicator tabs, if the override box is checked. Otherwise this indicator will use the assignments set in your site configuration.",
+            "properties": {
+                "override": {
+                    "type": "boolean",
+                    "title": "Override site configuration",
+                    "description": "If checked, the site-wide indicator tab configuration will be ignored for this indicator."
+                },
+                "tab_1": {
+                    "type": "string",
+                    "title": "Tab 1",
+                    "description": "What to display in the first tab",
+                    "$ref": "#/definitions/indicator_tabs_options"
+                },
+                "tab_2": {
+                    "type": "string",
+                    "title": "Tab 2",
+                    "description": "What to display in the second tab",
+                    "$ref": "#/definitions/indicator_tabs_options"
+                },
+                "tab_3": {
+                    "type": "string",
+                    "title": "Tab 3",
+                    "description": "What to display in the third tab",
+                    "$ref": "#/definitions/indicator_tabs_options"
+                },
+                "tab_4": {
+                    "type": "string",
+                    "title": "Tab 4",
+                    "description": "What to display in the fourth tab",
+                    "$ref": "#/definitions/indicator_tabs_options"
+                }
+            }
+        },
+        "national_geographical_coverage": {
+            "type": "string",
+            "title": "National geographical coverage",
+            "description": "A label used in the absence of any disaggregation."
+        },
+        "page_content": {
+            "type": "string",
+            "title": "Page content",
+            "description": "Content which displays in the main content area of the indicator page."
+        },
+        "permalink": {
+            "type": "string",
+            "title": "Permalink",
+            "description": "Overrides the normal path of the indicator page. Not recommended, execpt for 'standalone' indicators."
+        },
+        "placeholder": {
+            "title": "Placeholder indicator",
+            "type": "string",
+            "description": "Entering text here identifies this as a 'placeholder' indicator. The text will be displayed on the goal page, in place of a link to the indicator page."
+        },
+        "precision": {
+            "type": "array",
+            "title": "Precision rules",
+            "description": "Control the number of decimal places for data in this indicator.",
+            "items": {
+                "type": "object",
+                "title": "Precision rule",
+                "properties": {
+                    "decimals": {
+                        "type": "number",
+                        "title": "Decimals",
+                        "description": "The number of decimal places"
+                    },
+                    "series": {
+                        "type": "string",
+                        "title": "Series",
+                        "description": "Limit to this particular series"
+                    },
+                    "unit": {
+                        "type": "string",
+                        "title": "Unit",
+                        "description": "Limit to this particular unit"
+                    }
+                }
+            }
+        },
+        "progress_calculation_options": {
+            "type": "array",
+            "title": "Progress calculation options",
+            "description": "These settings control the automatic selection of a progress status when auto_progress_calculation is toggle on.",
+            "items": {
+                "type": "object",
+                "title": "Progress calculation options",
+                "properties": {
+                    "base_year": {
+                        "type": ["integer", "string"],
+                        "title": "Base year",
+                        "description": "Default: 2015. Base year with which to compare current progress."
+                    },
+                    "direction": {
+                        "type": "string",
+                        "title": "Direction",
+                        "description": "The indicator's desired direction of progress -- towards more positive values or more negative values. Default: negative.",
+                        "enum": ["negative", "positive"]
+                    },
+                    "disaggregation": {
+                        "type": "array",
+                        "title": "Disaggregations",
+                        "description": "Disaggregation(s) to include in the progress calculation from the provided series and/or unit if there is no headline. If more than one disaggregation is specified, a progress value is calculated for each specified disaggregation and the median is taken as the final progress value for the indicator.",
+                        "items": {
+                            "type": "object",
+                            "title": "Disaggregation",
+                            "properties": {
+                                "field": {
+                                    "type": "string",
+                                    "title": "Field",
+                                    "description": "Disaggregation column name"
+                                },
+                                "value": {
+                                    "type": "string",
+                                    "title": "Value",
+                                    "description": "Name of sub-category within disaggregation column"
+                                }
+                            }
+                        }
+                    },
+                    "limit": {
+                        "type": "number",
+                        "title": "Limit",
+                        "description": "Default: None. Only applicable if the target is None. Cannot be zero. If direction is 'positive', this is the maximum possible ceiling for the indicator values. If direction is 'negative', this is the minimum possible floor for the indicator values."
+                    },
+                    "series": {
+                        "type": "string",
+                        "title": "Series",
+                        "description": "Series for the progress calculation"
+                    },
+                    "target": {
+                        "type": "number",
+                        "title": "Target",
+                        "description": "Default: None. Value required to achieve target. Cannot be zero -- a target of zero will be reset to 0.001."
+                    },
+                    "target_year": {
+                        "type": ["integer", "string"],
+                        "title": "Target year",
+                        "description": "Default: 2030. Year by which the target is expected to be achieved."
+                    },
+                    "unit": {
+                        "type": "string",
+                        "title": "Unit",
+                        "description": "Unit for the progress calculation"
+                    }
+                }
+            }
+        },
+        "progress_status": {
+            "type": "string",
+            "title": "Progress status",
+            "enum": ["", "not_available", "challenges_remain", "approaching_target", "target_achieved", "deterioration", "limited_progress", "moderate_progress", "substantial_progress"],
+            "description": "Progress status level that can be manually specified by the user if auto_progress_calculation is false."
+        },
+        "proxy": {
+            "type": "string",
+            "title": "Proxy",
+            "enum": ["", "proxy", "both"],
+            "description": "Flag this indicator as being a 'proxy' for one of the global SDG indicators. Use 'proxy' to flag the entire indicator, or use 'both' to flag particular serieses."
+        },
+        "proxy_series": {
+            "type": "array",
+            "title": "Proxy serieses",
+            "description": "If 'proxy' above is set to both, this is required in order to specify which serieses should be flagged as proxies.",
+            "items": {
+                "type": "string",
+                "title": "Series"
+            }
+        },
+        "publications": {
+            "type": "array",
+            "title": "Publications",
+            "description": "This setting controls the content of the 'Related publications' tab. It can contain any number of publications. You may have much of this information in the indicator metadata, but this configuration is available to supplement the metadata with a more structured way to list multiple publications.",
+            "items": {
+                "type": "object",
+                "title": "Publication",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "link": {
+                        "type": "string",
+                        "title": "Link"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "End value"
+                    },
+                    "date": {
+                        "type": "string",
+                        "title": "Date"
+                    }
+                }
+            }
+        },
+        "related_indicators": {
+            "type": "array",
+            "title": "Related indicators",
+            "description": "This setting controls the 'Related indicators' tab. Specify indicators by using their indicator numbers, such as: 1.1.1",
+            "items": {
+                "type": "string",
+                "title": "Related indicator"
+            }
+        },
+        "reporting_status": {
+            "type": "string",
+            "title": "Reporting status",
+            "enum": ["complete", "inprogress", "notstarted", "notapplicable"],
+            "description": "The reporting status of the indicator."
+        },
+        "sort": {
+            "type": "string",
+            "title": "Sort order",
+            "description": "Override the default order in which this indicator is displayed in lists. This can be left blank, and it will be automatically determined."
+        },
+        "sources": {
+            "type": "array",
+            "title": "Sources",
+            "description": "This setting controls the content of the 'Sources' tab. It can contain any number sources. You may have much of this information in the metadata, but this configuration is available to supplement the metadata with a more structured way to list multiple sources.",
+            "items": {
+                "type": "object",
+                "title": "Source",
+                "properties": {
+                    "organisation": {
+                        "type": "string",
+                        "title": "Organisation"
+                    },
+                    "periodicity": {
+                        "type": "string",
+                        "title": "Periodicity"
+                    },
+                    "earliest_available": {
+                        "type": "string",
+                        "title": "Earliest available data"
+                    },
+                    "geographical_coverage": {
+                        "type": "string",
+                        "title": "Geographical coverage"
+                    },
+                    "url": {
+                        "type": "string",
+                        "title": "URL"
+                    },
+                    "url_text": {
+                        "type": "string",
+                        "title": "URL text"
+                    },
+                    "release_date": {
+                        "type": "string",
+                        "title": "Release date"
+                    },
+                    "next_release": {
+                        "type": "string",
+                        "title": "Next release"
+                    },
+                    "statistical_classification": {
+                        "type": "string",
+                        "title": "Statistical classification"
+                    },
+                    "contact": {
+                        "type": "string",
+                        "title": "Contact"
+                    },
+                    "other_info": {
+                        "type": "string",
+                        "title": "Other information"
+                    },
+                    "logo": {
+                        "type": "string",
+                        "title": "Path to logo image"
+                    }
+                }
+            }
+        },
+        "standalone": {
+            "title": "Standalone indicator",
+            "type": "boolean",
+            "description": "Whether the indicator is standalone (separate from the SDGs) or not."
+        },
+        "tags": {
+            "type": "array",
+            "title": "Tags",
+            "description": "An optional list of 'tags' to display under an indicator when it is listed on its goal page.",
+            "items": {
+                "type": "string",
+                "title": "Tag"
+            }
+        },
+        "x_axis_label": {
+            "type": "string",
+            "title": "X axis label",
+            "description": "A label beneath the X axis on charts. This overrides the same site configuration setting."
+        }
+    },
+    "additionalProperties": true,
+    "definitions": {
+        "series_unit_constraint": {
+            "type": "object",
+            "properties": {
+                "series": {
+                    "type": "string",
+                    "title": "Series",
+                    "description": "Limit to this particular series"
+                },
+                "unit": {
+                    "type": "string",
+                    "title": "Unit",
+                    "description": "Limit to this particular unit"
+                }
+            }
+        },
+        "indicator_tabs_options": {
+            "enum": ["", "chart", "table", "map", "embed", "hide"]
+        }
+    }
+}
+;
+      opensdg.configForm.uiSchema = {
+    "type": "Categorization",
+    "elements": [
+        {
+            "type": "Category",
+            "label": "Data",
+            "elements": [
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Non-statistical data",
+                    "documentationKey": "data_non_statistical",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/data_non_statistical",
+                            "options": {
+                                "toggle": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Computation units",
+                    "documentationKey": "computation_units",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/computation_units"
+                        }
+                    ],
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                            "scope": "#/properties/data_non_statistical",
+                            "schema": { "const": true }
+                        }
+                    }
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "National Geographical Coverage",
+                    "documentationKey": "national_geographical_coverage",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/national_geographical_coverage"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Precision",
+                    "documentationKey": "precision",
+                    "elements": [
+                        {
+                            "type": "ListWithDetail",
+                            "scope": "#/properties/precision",
+                            "options": {
+                                "detail": {
+                                    "type": "VerticalLayout",
+                                    "elements": [
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/decimals"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/series"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/unit"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                            "scope": "#/properties/data_non_statistical",
+                            "schema": { "const": true }
+                        }
+                    }
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Show map",
+                    "documentationKey": "data_show_map",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/data_show_map",
+                            "options": {
+                                "toggle": true
+                            }
+                        }
+                    ],
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                            "scope": "#/properties/data_non_statistical",
+                            "schema": { "const": true }
+                        }
+                    }
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Standalone",
+                    "documentationKey": "standalone",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/standalone",
+                            "options": {
+                                "toggle": true
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Category",
+            "label": "Disaggregation",
+            "elements": [
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Start values",
+                    "documentationKey": "data_start_values",
+                    "elements": [
+                        {
+                            "type": "ListWithDetail",
+                            "scope": "#/properties/data_start_values",
+                            "options": {
+                                "detail": {
+                                    "type": "VerticalLayout",
+                                    "elements": [
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/field"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/value"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Expected disaggregations",
+                    "documentationKey": "expected_disaggregations",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/expected_disaggregations"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Composite Breakdown label",
+                    "documentationKey": "composite_breakdown_label",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/composite_breakdown_label"
+                        }
+                    ]
+                }
+            ],
+            "rule": {
+                "effect": "HIDE",
+                "condition": {
+                  "scope": "#/properties/data_non_statistical",
+                  "schema": { "const": true }
+                }
+            }
+        },
+        {
+            "type": "Category",
+            "label": "Graph",
+            "elements": [
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Graph type",
+                    "documentationKey": "graph_type",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/graph_type"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Graph types",
+                    "documentationKey": "graph_types",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/graph_types"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "X Axis label",
+                    "documentationKey": "x_axis_label",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/x_axis_label"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Stacked disaggregation",
+                    "documentationKey": "graph_stacked_disaggregation",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/graph_stacked_disaggregation"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Graph limits",
+                    "documentationKey": "graph_limits",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/graph_limits"
+                        }
+                    ]
+                }
+            ],
+            "rule": {
+                "effect": "HIDE",
+                "condition": {
+                  "scope": "#/properties/data_non_statistical",
+                  "schema": { "const": true }
+                }
+            }
+        },
+        {
+            "type": "Category",
+            "label": "Graph Annotation",
+            "elements": [
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Graph annotations",
+                    "documentationKey": "graph_annotations",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/graph_annotations"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Series breaks",
+                    "documentationKey": "graph_series_breaks",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/graph_series_breaks"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Target lines",
+                    "documentationKey": "graph_target_lines",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/graph_target_lines"
+                        }
+                    ]
+                }
+            ],
+            "rule": {
+                "effect": "HIDE",
+                "condition": {
+                  "scope": "#/properties/data_non_statistical",
+                  "schema": { "const": true }
+                }
+            }
+        },
+        {
+            "type": "Category",
+            "label": "Header",
+            "elements": [
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Indicator number",
+                    "documentationKey": "indicator_number",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/indicator_number"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Indicator name",
+                    "documentationKey": "indicator_name",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/indicator_name"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Indicator available",
+                    "documentationKey": "indicator_available",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/indicator_available"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Graph title",
+                    "documentationKey": "graph_title",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/graph_title"
+                        }
+                    ],
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                            "scope": "#/properties/data_non_statistical",
+                            "schema": { "const": true }
+                        }
+                    }
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Graph titles",
+                    "documentationKey": "graph_titles",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/graph_titles"
+                        }
+                    ],
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                            "scope": "#/properties/data_non_statistical",
+                            "schema": { "const": true }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Category",
+            "label": "Footer",
+            "elements": [
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Copyright",
+                    "documentationKey": "copyright",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/copyright"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Footnote",
+                    "documentationKey": "data_footnote",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/data_footnote",
+                            "options": {
+                                "multi": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Footer fields",
+                    "documentationKey": "footer_fields",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/footer_fields"
+                        }
+                    ]
+                }
+            ],
+            "rule": {
+                "effect": "HIDE",
+                "condition": {
+                  "scope": "#/properties/data_non_statistical",
+                  "schema": { "const": true }
+                }
+            }
+        },
+        {
+            "type": "Category",
+            "label": "Info",
+            "elements": [
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Data notice - Text",
+                    "documentationKey": "data_notice_text",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/data_notice_text"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Data notice - Heading",
+                    "documentationKey": "data_notice_heading",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/data_notice_heading"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Data notice - Class",
+                    "documentationKey": "data_notice_class",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/data_notice_class"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Placeholder",
+                    "documentationKey": "placeholder",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/placeholder"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Page content",
+                    "documentationKey": "page_content",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/page_content",
+                            "options": {
+                                "multi": true
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Category",
+            "label": "Webmaster",
+            "elements": [
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Permalink",
+                    "documentationKey": "permalink",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/permalink"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Tags",
+                    "documentationKey": "tags",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/tags"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Sort",
+                    "documentationKey": "sort",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/sort"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Category",
+            "label": "Status",
+            "elements": [
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Reporting status",
+                    "documentationKey": "reporting_status",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/reporting_status"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Automatic progress calculation",
+                    "documentationKey": "auto_progress_calculation",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/auto_progress_calculation"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Progress status",
+                    "documentationKey": "progress_status",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/progress_status"
+                        }
+                    ],
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                          "scope": "#/properties/auto_progress_calculation",
+                          "schema": { "const": true }
+                        }
+                    }
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Progress calculation options",
+                    "documentationKey": "progress_calculation_options",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/progress_calculation_options"
+                        }
+                    ],
+                    "rule": {
+                        "effect": "SHOW",
+                        "condition": {
+                          "scope": "#/properties/auto_progress_calculation",
+                          "schema": { "const": true }
+                        }
+                    }
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Proxy",
+                    "documentationKey": "proxy",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/proxy"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Proxy series",
+                    "documentationKey": "proxy_series",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/proxy_series"
+                        }
+                    ],
+                    "rule": {
+                        "effect": "SHOW",
+                        "condition": {
+                            "scope": "#/properties/proxy",
+                            "schema": { "const": "both" }
+                        }
+                    }
+                }
+            ],
+            "rule": {
+                "effect": "HIDE",
+                "condition": {
+                  "scope": "#/properties/standalone",
+                  "schema": { "const": true }
+                }
+            }
+        },
+        {
+            "type": "Category",
+            "label": "Tabs",
+            "elements": [
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Indicator tabs",
+                    "documentationKey": "indicator_tabs",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/indicator_tabs/properties/override",
+                            "options": {
+                                "toggle": true
+                            }
+                        },
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/indicator_tabs/properties/tab_1"
+                        },
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/indicator_tabs/properties/tab_2"
+                        },
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/indicator_tabs/properties/tab_3"
+                        },
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/indicator_tabs/properties/tab_4"
+                        }
+                    ],
+                    "rule": {
+                        "effect": "HIDE",
+                        "condition": {
+                            "scope": "#/properties/data_non_statistical",
+                            "schema": { "const": true }
+                        }
+                    }
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Publications",
+                    "documentationKey": "publications",
+                    "elements": [
+                        {
+                            "type": "ListWithDetail",
+                            "scope": "#/properties/publications",
+                            "options": {
+                                "detail": {
+                                    "type": "VerticalLayout",
+                                    "elements": [
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/title"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/link"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/description",
+                                            "options": {
+                                                "multi": true
+                                            }
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/date"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Related indicators",
+                    "documentationKey": "related_indicators",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/related_indicators"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Sources",
+                    "documentationKey": "sources",
+                    "elements": [
+                        {
+                            "type": "ListWithDetail",
+                            "scope": "#/properties/sources",
+                            "options": {
+                                "detail": {
+                                    "type": "VerticalLayout",
+                                    "elements": [
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/organisation"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/periodicity"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/earliest_available"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/geographical_coverage"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/url"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/url_text"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/release_date"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/next_release"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/statistical_classification"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/contact"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/other_info"
+                                        },
+                                        {
+                                            "type": "Control",
+                                            "scope": "#/properties/logo"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Category",
+            "label": "Embed",
+            "elements": [
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Embedded Feature - URL",
+                    "documentationKey": "embedded_feature_url",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/embedded_feature_url"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Embedded Feature - HTML",
+                    "documentationKey": "embedded_feature_html",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/embedded_feature_html",
+                            "options": {
+                                "multi": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Embedded Feature - Title",
+                    "documentationKey": "embedded_feature_title",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/embedded_feature_title"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Embedded Feature - Tab Title",
+                    "documentationKey": "embedded_feature_tab_title",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/embedded_feature_tab_title"
+                        }
+                    ]
+                },
+                {
+                    "type": "GroupWithAccordion",
+                    "label": "Embedded Feature - Footer",
+                    "documentationKey": "embedded_feature_footer",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/embedded_feature_footer",
+                            "options": {
+                                "multi": true
+                            }
+                        }
+                    ]
+                }
+            ],
+            "rule": {
+                "effect": "HIDE",
+                "condition": {
+                  "scope": "#/properties/data_non_statistical",
+                  "schema": { "const": true }
+                }
+            }
+        }
+    ]
+}
+;
+      opensdg.configForm.initialData = {"composite_breakdown_label":"","computation_units":"","copyright":"","data_footnote":"","data_non_statistical":false,"data_notice_class":"","data_notice_heading":"","data_notice_text":"","data_show_map":false,"data_start_values":[],"embedded_feature_footer":"","embedded_feature_html":"","embedded_feature_tab_title":"","embedded_feature_title":"","embedded_feature_url":"","expected_disaggregations":[],"graph_annotations":[],"graph_limits":[],"graph_stacked_disaggregation":"","graph_title":"global_indicators.1-1-1-title","graph_titles":[],"graph_type":"line","indicator_name":"global_indicators.1-1-1-title","indicator_number":"1.1.1","national_geographical_coverage":"","page_content":"","permalink":"","precision":[],"reporting_status":"notstarted","sort":"","standalone":false,"tags":[],"SDG_GOAL":"Goal 1: End poverty in all its forms everywhere","SDG_TARGET":"Target 1.1: By 2030, eradicate extreme poverty for all people everywhere, currently measured as people living on less than $1.25 a day","SDG_INDICATOR":"Indicator 1.1.1: Proportion of the population living below the international poverty line by sex, age, employment status and geographic location (urban/rural)","SDG_SERIES_DESCR":"","META_LAST_UPDATE":"","SDG_RELATED_INDICATORS":"","SDG_CUSTODIAN_AGENCIES":"","CONTACT_ORGANISATION":"","CONTACT_NAME":"","ORGANISATION_UNIT":"","CONTACT_FUNCT":"","CONTACT_PHONE":"","CONTACT_MAIL":"","CONTACT_EMAIL":"","STAT_CONC_DEF":"## Definition:\nThe proportion of the employed population below the international poverty line of US$1.90 per day, also referred to as the working poverty rate, is defined as the share of employed persons living in households with per-capita consumption or income that is below the international poverty line of US$1.90.\n## Concepts:\n**Employment:** All persons of working age who, during a short reference period (one week), were engaged in any activity to produce goods or provide services for pay or profit.\n\n**Poverty Line:** Threshold below which individuals in the reference population are considered poor and above which they are considered non-poor. The threshold is generally defined as the per-capita monetary requirements an individual needs to afford the purchase of a basic bundle of goods and services. For the purpose of this indicator, an absolute international poverty line of US$1.90 per day is used.\n\n**Household in poverty:** Households are defined as poor if their income or consumption expenditure is below the poverty line taking into account the number of household members and composition (e.g., number of adults and children).\n\n**Working poor:** Employed persons living in households that are classified as poor, that is, that have income or consumption levels below the poverty line used for measurement.","UNIT_MEASURE":"","CLASS_SYSTEM":"","SOURCE_TYPE":"","COLL_METHOD":"","FREQ_COLL":"","REL_CAL_POLICY":"","DATA_SOURCE":"","COMPILING_ORG":"","INST_MANDATE":"","RATIONALE":"","REC_USE_LIM":"","DATA_COMP":"","DATA_VALIDATION":"","ADJUSTMENT":"","IMPUTATION":"","REG_AGG":"","DOC_METHOD":"","QUALITY_MGMNT":"","QUALITY_ASSURE":"","QUALITY_ASSMNT":"","COVERAGE":"","COMPARABILITY":"","OTHER_DOC":"","es":{"SDG_GOAL":"Meta 1: Poner fin a la pobreza en todas sus formas y en todo el mundo","SDG_TARGET":"Objetivo 1.1: De aquí a 2030, erradicar para todas las personas y en todo el mundo la pobreza extrema (actualmente se considera que sufren pobreza extrema las personas que viven con menos de 1,25 dólares de los Estados Unidos al día)","SDG_INDICATOR":"Indicador 1.1.1: Proporción de la población que vive por debajo del umbral de pobreza internacional por sexo, edad, situación laboral y ubicación geográfica (urbana/rural)","SDG_SERIES_DESCR":"","META_LAST_UPDATE":"","SDG_RELATED_INDICATORS":"","SDG_CUSTODIAN_AGENCIES":"","CONTACT_ORGANISATION":"","CONTACT_NAME":"","ORGANISATION_UNIT":"","CONTACT_FUNCT":"","CONTACT_PHONE":"","CONTACT_MAIL":"","CONTACT_EMAIL":"","STAT_CONC_DEF":"## Definición:\nEl indicador \"proporción de la población por debajo del umbral de pobreza internacional\" se define como el porcentaje de la población que vive con menos de 1,90 dólares al día a precios internacionales de 2011. La línea de pobreza internacional se fija actualmente en 1,90 dólares al día a precios internacionales de 2011.\n\n## Conceptos:\nAl evaluar la pobreza en un país determinado y la mejor manera de reducirla, naturalmente uno se enfoca en una línea de pobreza que se considera apropiada para ese país. Pero, ¿cómo hablamos de manera significativa sobre \"la pobreza global\"? Las líneas de pobreza entre países varían en términos de su poder adquisitivo y tienen un fuerte gradiente económico, de modo que los países más ricos tienden a adoptar niveles de vida más altos al definir la pobreza. Pero para medir consistentemente la pobreza absoluta global en términos de consumo, necesitamos tratar a dos personas con el mismo poder adquisitivo sobre los productos básicos de la misma manera - ambos son pobres o no lo son - incluso si viven en países diferentes.\n\nDesde el Informe sobre el desarrollo mundial de 1990, el Banco Mundial se ha propuesto aplicar un estándar común para medir la pobreza extrema, anclado en lo que significa la pobreza en los países más pobres del mundo. El bienestar de las personas que viven en diferentes países se puede medir en una escala común ajustando las diferencias en el poder adquisitivo de las monedas. Para el Informe sobre el desarrollo mundial de 1990, se eligió el estándar de 1 dólar al día, medido a precios internacionales de 1985 y ajustado a la moneda local mediante PPA, porque era típico de las líneas de pobreza de los países de bajos ingresos en ese momento. A medida que evolucionan las diferencias en el costo de vida en todo el mundo, la línea de pobreza internacional debe actualizarse periódicamente utilizando nuevos datos de precios de PPA para reflejar estos cambios. El último cambio fue en octubre de 2015, cuando el Banco Mundial adoptó $ 1,90 como línea de pobreza internacional utilizando la PPA de 2011. Antes de eso, la actualización de 2008 estableció la línea de pobreza internacional en $ 1,25 utilizando la PPA de 2005. Las medidas de pobreza basadas en líneas de pobreza internacionales intentan mantener constante el valor real de la línea de pobreza en todos los países, como se hace al hacer comparaciones en el tiempo. Las primeras ediciones de los Indicadores de desarrollo mundial (WDI) del Banco Mundial' utilizaban las PPA de las Penn World Tables para convertir los valores en moneda local al poder adquisitivo equivalente medido en dólares estadounidenses. En ediciones posteriores se utilizaron estimaciones de la PPA de consumo de 1993, 2005 y 2011 elaboradas por el Programa de Comparación Internacional (PCI) del Banco Mundial'.","UNIT_MEASURE":"","CLASS_SYSTEM":"","SOURCE_TYPE":"","COLL_METHOD":"","FREQ_COLL":"","REL_CAL_POLICY":"","DATA_SOURCE":"","COMPILING_ORG":"","INST_MANDATE":"","RATIONALE":"","REC_USE_LIM":"","DATA_COMP":"","DATA_VALIDATION":"","ADJUSTMENT":"","IMPUTATION":"","REG_AGG":"","DOC_METHOD":"","QUALITY_MGMNT":"","QUALITY_ASSURE":"","QUALITY_ASSMNT":"","COVERAGE":"","COMPARABILITY":"","OTHER_DOC":""},"national_metadata_updated_date":"2021-05-17","national_data_updated_date":"2018-10-20","SDG_GOAL__GLOBAL":"<p>Goal 1: End poverty in all its forms everywhere</p>","SDG_TARGET__GLOBAL":"<p>Target 1.1: By 2030, eradicate extreme poverty for all people everywhere, currently measured as people living on less than $1.25 a day</p>","SDG_INDICATOR__GLOBAL":"<p>Indicator 1.1.1: Proportion of the population living below the international poverty line by sex, age, employment status and geographic location (urban/rural)</p>","SDG_SERIES_DESCR__GLOBAL":"<p>SI_POV_DAY1 - Proportion of population below international poverty line [1.1.1]</p>","META_LAST_UPDATE__GLOBAL":"2025-08-14","SDG_RELATED_INDICATORS__GLOBAL":"<p>1.2.1: Proportion of population living below the national poverty line, by sex and age</p>\n<p>10.1.1: Growth rates of household expenditure or income per capita among the bottom 40 per cent of the population and the total population</p>\n<p>10.2.1 Proportion of people living below 50 per cent of median income, by sex, age and persons with disabilities</p>","SDG_CUSTODIAN_AGENCIES__GLOBAL":"<p>World Bank (WB)</p>","CONTACT_ORGANISATION__GLOBAL":"<p>World Bank (WB)</p>","STAT_CONC_DEF__GLOBAL":"<p><strong>Definition:</strong></p>\n<p>The indicator &#x201C;proportion of the population below the international poverty line&#x201D; is defined as the percentage of the population living on less than $3.00 a day at 2021 international prices. </p>\n<p><strong>Concepts:</strong></p>\n<p>In assessing poverty in a given country, and how best to reduce poverty, one naturally focuses on a poverty line that is considered appropriate for that country. But how do we talk meaningfully about &#x201C;global poverty?&#x201D; Poverty lines across countries vary in terms of their purchasing power, and they have a strong economic gradient, such that richer countries tend to adopt higher standards of living in defining poverty. But to consistently measure global absolute poverty in terms of consumption we need to treat two people with the same purchasing power over commodities the same way&#x2014;both are either poor or not poor&#x2014;even if they live in different countries.</p>\n<p>Since World Development Report 1990, the World Bank has aimed to apply a common standard in measuring extreme poverty, anchored to what poverty means in the world&apos;s poorest countries. The welfare of people living in different countries can be measured on a common scale by adjusting for differences in the purchasing power of currencies. The commonly used $1 a day standard, measured in 1985 international prices and adjusted to local currency using purchaing power parity (PPP) exchange rates, was chosen for World Development Report 1990 because it was typical of the poverty lines in low-income countries at the time. As differences in the cost of living across the world evolve, the international poverty line has to be periodically updated using new PPP price data to reflect these changes. The last change was in June 2025, when the World Bank adopted $3.00 as the international poverty line using the 2021 PPP. Prior to that, the 2022 update set the international poverty line at $2.15 using the 2017 PPP (and can be accessed at <a href=\"https://eur02.safelinks.protection.outlook.com/?url=https%3A%2F%2Fpip.worldbank.org%2F&amp;data=05%7C02%7Cshibata%40un.org%7Cdcfa537abc4840e8db5508ddd6fc1b00%7C0f9e35db544f4f60bdcc5ea416e6dc70%7C0%7C0%7C638903100476885459%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&amp;sdata=u5JzRxQG0fN3PIw7QIcg25FN0I7e9ymNKwR4ZD978m4%3D&amp;reserved=0\">https://pip.worldbank.org/</a> by selecting the corresponding PPP) and the 2015 update set the international poverty line at $1.90 using the 2011 PPP. Poverty measures based on international poverty lines attempt to hold the real value of the poverty line constant across countries and over time. </p>","UNIT_MEASURE__GLOBAL":"<p>Percent (%). The unit of measure is the proportion of people. </p>","CLASS_SYSTEM__GLOBAL":"<p>Not applicable</p>","SOURCE_TYPE__GLOBAL":"<p>The World Bank typically receives data from National Statistical Offices (NSOs) directly. In other cases it uses NSO data received indirectly. For example, it receives data from Eurostat and from LIS (Luxemburg Income Study), who provide the World Bank NSO data they have received / harmonized. The Universidad Nacional de La Plata, Argentina and the World Bank jointly maintain the SEDLAC (Socio-Economic Database for Latin American and Caribbean) database that includes harmonized statistics on poverty and other distributional and social variables from 24 Latin American and Caribbean countries, based on microdata from household surveys conducted by NSOs. </p>\n<p>Data is obtained through country specific programs, including technical assistance programs and joint analytical and capacity building activities. The World Bank has relationships with NSOs on work programs involving statistical systems and data analysis. Poverty economists from the World Bank typically engage with NSOs broadly on poverty measurement and analysis as part of technical assistance activities. </p>\n<p>The input data used are most often unit record data of welfare and occasionally grouped data, which is converted to a full distribution. The World Bank cannot take as input data a poverty rate published on an NSO website without the underlying distribution for a couple of reaons: </p>\n<ol>\n  <li>Extrapolating or interpolating all country estimates to a common reference year, which is needed to calculate global poverty, requires a full distribution. </li>\n  <li>Updates to poverty estimates in the face of revised PPPs and consumer price indices (CPIs) would not be possible to perform by the World Bank, imposing a higher burden on NSOs potentially becoming an obstacle for timely publication of updated data.</li>\n  <li>Unit-record data allows for quality checking the data and ensuring that the choices used to create the welfare aggregate are as comparable as possible across countries.</li>\n</ol>\n<p><strong>List:</strong></p>\n<p>Directly from National Statistical Offices (NSOs) or indirectly from others &#x2013; see section on data sources.</p>","COLL_METHOD__GLOBAL":"<p>In many low-income countries, the Poverty and Equity Global Practice of the World Bank is cooperating with the National Statistical Offices and supporting their efforts of conducting household surveys and measuring poverty. Data are obtained through these partnerships. This concerns most countries in East Asia &amp; Pacific, the Middle East &amp; North Africa, South Asia, and Sub-Saharan Africa.</p>\n<p>For Latin America and the Caribbean, most of the data are obtained from and harmonized by the CEDLAS&#x2019;s Socio-Economic Database for Latin America and the Caribbean (SEDLAC), which is a partnership between the Center for Distributive, Labor and Social Studies (CEDLAS) at the National University of La Plata in Argentina and the World Bank&#x2019;s Poverty and Equity Global Practice for Latin America and the Caribbean.</p>\n<p>For most high-income countries data are obtained through the Luxembourg Income Study or EU-SILC.</p>","FREQ_COLL__GLOBAL":"<p>Data are collected continuously by the Global Poverty Working Group of the World Bank.</p>","REL_CAL_POLICY__GLOBAL":"<p>The World Bank Group updates the poverty data every year. Updates are released ahead of the World Bank&#x2019;s Spring Meetings. </p>","DATA_SOURCE__GLOBAL":"<p>The World Bank typically receives data from National Statistical Offices (NSOs) directly. In other cases it uses NSO data received indirectly. Please see the section on data sources and data collection method for further details.</p>","COMPILING_ORG__GLOBAL":"<p>World Bank</p>","INST_MANDATE__GLOBAL":"<p>Within the World Bank, the Global Poverty Working Group (GPWG) is in charge of the collection, validation and estimation of poverty estimates. GPWG archives the datasets obtained from NSOs and then harmonizes them, applying common methodologies. The objective of the GPWG is to ensure that poverty and inequality data generated, curated, and disseminated by the World Bank meet high-quality standards, and are well documented and consistent across dissemination channels. </p>","RATIONALE__GLOBAL":"<p>Monitoring poverty is important on the global development agenda as well as on the national development agenda of many countries. The World Bank produced its first global poverty estimates for developing countries for World Development Report 1990: Poverty (World Bank 1990) using household survey data for 22 countries (Ravallion, Datt, and van de Walle 1991). Since then there has been considerable expansion in the number of countries that field household income and expenditure surveys. The World Bank&apos;s Development Data Group and Poverty and Equity Global Practice maintain a database, PIP, that is updated annually as new survey data become available (and thus may contain more recent data or revisions) and conducts a major reassessment of progress against poverty every year. PIP is an interactive computational tool that allows users to replicate these internationally comparable $3.00 a day global, regional and country-level poverty estimates and to compute poverty measures for country groupings and for different poverty lines. </p>\n<p>PIP also provides access to the database and user-friendly dashboards with graphs and interactive maps that visualize trends in key poverty and inequality indicators for different regions and countries. The country dashboards display trends in poverty measures based on the national poverty lines alongside the internationally comparable estimates.</p>","REC_USE_LIM__GLOBAL":"<p>Despite progress in the last decade, the challenges of measuring poverty remain. The timeliness, frequency, quality, and comparability of household surveys needs to increase substantially, particularly in the poorest countries. The availability and quality of poverty monitoring data remains low in small states, countries with fragile situations, and low-income countries and even some middle-income countries. The low frequency and lack of comparability of the data available in some countries create uncertainty over the magnitude of poverty reduction. </p>\n<p>Besides the frequency and timeliness of survey data, other data quality issues arise in measuring household living standards. The surveys ask detailed questions on sources of income and how it was spent, which must be carefully recorded by trained personnel. Income is generally more difficult to measure accurately, and consumption comes closer to the notion of living standards. And income can vary over time even if living standards do not. But consumption data are not always available: the latest estimates reported here use consumption data for about two-thirds of countries.</p>\n<p>However, even similar surveys may not be strictly comparable because of differences in timing or in the quality and training of enumerators. Comparisons of countries at different levels of development also pose a potential problem because of differences in the relative importance of the consumption of nonmarket goods. The local market value of all consumption in kind (including own production, particularly important in underdeveloped rural economies) should be included in total consumption expenditure but may not be. Most survey data now include valuations for consumption or income from own production, but valuation methods vary.</p>","DATA_COMP__GLOBAL":"<p>To measure poverty across countries consistently, the World Bank&#x2019;s international measures apply a common standard, anchored to what &#x201C;poverty&#x201D; means in the world&#x2019;s poorest countries. The original &#x201C;$1-a-day&#x201D; line was based on a compilation of national lines for only 22 developing countries, mostly from academic studies in the 1980s (Ravallion, et al., 1991). While this was the best that could be done at the time, the sample was hardly representative of developing countries even in the 1980s. Since then, national poverty lines have been developed for many other countries. Based on a compilation of national lines for 75 developing countries, Ravallion, Chen and Sangraula (RCS) (2009) proposed a new international poverty line of $1.25 a day. This is the average poverty line for the poorest 15 countries in their data set. </p>\n<p>The current extreme poverty line is set at $3.00 a day in 2021 PPP terms, which represents the mean of the national poverty lines found in 23 low-income countries (Foster &#x24E1; al. 2025) . The new poverty line maintains the same standard for extreme poverty - the poverty line typical of the poorest countries in the world - but updates it using the latest information on the cost of living in developing countries. </p>\n<p>When measuring international poverty of a country, the international poverty line at PPP is converted to local currencies in 2021 prices and is then converted to the prices prevailing at the time of the relevant household survey using the best available Consumer Price Index (CPI). (Equivalently, the survey data on household consumption or income for the survey year are expressed in the prices of the ICP base year, and then converted to PPP $&#x2019;s.) Then the poverty rate is calculated from that survey. All inter-temporal comparisons are real, as assessed using the country-specific CPI. Interpolation/extrapolation methods are used to line up the survey-based estimates with these reference years.</p>","DATA_VALIDATION__GLOBAL":"<p>The raw data are obtained by poverty economists through their contacts in the NSOs, and checked for quality before being submitted for further analysis. The raw data can be unit-record survey data, or grouped data, depending on the agreements with the country governments. In most cases, the welfare aggregate, the essential element for poverty estimation, is generated by the country governments. Sometimes, the World Bank constructs the welfare aggregate or adjusts the aggregate provided by the country.</p>","ADJUSTMENT__GLOBAL":"<p>Not applicable</p>","IMPUTATION__GLOBAL":"<p><strong>&#x2022; At country level</strong></p>\n<p>There is no &#x201C;imputation&#x201D; in the traditional sense for missing country data. However, to generate regional and global aggregates for reference years, country-level data are imputed for the years when surveys are not conducted. These imputed data are to be used for aggregation, but not for replacing the actual survey data. The subsequent section on the treatment of missing values at the regional and global levels provide more details on the imputation method.</p>\n<p><strong>&#x2022; At regional and global levels</strong></p>\n<p>To compare the poverty rates across countries and compute regional aggregates, country estimates must be &#x201C;lined up&#x201D; first to a common reference year, interpolating for countries in which survey data are not available in the reference year but are available either before, after, or both. The more survey data are available (that is, the more data for different years), the more accurate the interpolation.</p>\n<p>The process requires adjusting the mean income or expenditure observed in the survey year by a growth factor to infer the unobserved level in the reference year. Thus, two assumptions are required to implement this process: distribution-neutral growth and a real rate of growth between the survey and reference year.</p>\n<p>Distribution-neutral growth implies that income or expenditure levels are adjusted for growth assuming that the underlying relative distribution of income or expenditure observed in survey years remains unchanged. Under this assumption, it is straightforward to interpolate the poverty estimate in a given reference year implied by a given rate of growth in income or expenditure. Rates of change in real consumption per capita should be based on the change in real consumption measured by comparing country survey data across different years. In practice, however, survey data in most countries are not available on an annual basis. Therefore, the change in private consumption per capita as measured from the national accounts is used instead. While, there can be no guarantee that the survey-based measure of income or consumption change at the same rate as private consumption in the national accounts, this appears to be the best available option.</p>\n<p>When the reference year falls between two survey years, an estimate of mean consumption at the reference year is constructed by extrapolating the means obtained from the surveys forward and backward to the reference year. The second step is to compute the headcount poverty rate at the reference year after normalizing the distributions observed in the two survey years by the reference year mean. This yields two estimates of the headcount poverty rates in the reference year. The final reported poverty headcount rate for the reference years is the linear interpolation of the two. When data from only one survey year are available, the reference year mean is based on the survey mean by applying the growth rate in private consumption per capita from the national accounts. The reference year poverty estimate is then based on this mean and on the distribution observed in the one survey year. The better data coverage is in terms of number and frequency of available surveys, the more accurate this lining-up process is and the more reliable the regional estimates will be.</p>\n<p>The aggregate headcount ratio for a region is the population-weighted mean of the headcount indices across the countries in that region. The number of poor in each region is the product of the region&#x2019;s headcount index and total regional population. This assumes that the poverty rate for a country without a household survey is the regional average.</p>","REG_AGG__GLOBAL":"<p>Because surveys are not conducted every year in most countries, poverty estimates have to be derived for line-up years by interpolation or extrapolation using national accounts data. These estimates for line-up years are then aggregated to regional and global numbers. Regional and global aggregates are population-weighted averages.</p>","DOC_METHOD__GLOBAL":"<p>Countries may refer to the report &#x201C;On the Construction of a Consumption Aggregate for Inequality and Poverty Analysis&#x201D;. The report is available here:</p>\n<p>ahttps://documents.worldbank.org/en/publication/documents-reports/documentdetail/099225003092220001/p1694340e80f9a00a09b20042de5a9cd47e<br></p>","QUALITY_MGMNT__GLOBAL":"<p>The quality of the estimates is managed through the World Bank&#x2019;s Global Poverty Working Group. </p>","QUALITY_ASSURE__GLOBAL":"<p>The poverty estimates released by the World Bank are quality checked by members of the Global Poverty Working Group and often with members of the relevant National Statistical Offices.</p>","QUALITY_ASSMNT__GLOBAL":"<p>Assessments of the quality behind povety estimates are often available in World Bank Poverty Assessments and in Global Poverty Moniotring Technical Notes.</p>","COVERAGE__GLOBAL":"<p><strong>Data availability:</strong></p>\n<p>Data are available in 160+ economies, (measured in terms of number of economies that have at least 1 data point).</p>","COMPARABILITY__GLOBAL":"<p><strong>Sources of discrepancies:</strong></p>\n<p>National poverty is a different concept than global poverty. National poverty rate is defined at country-specific poverty lines in local currencies, which are different in real terms across countries and different from the $3.00-a-day international poverty line. Thus, national poverty rates cannot be compared across countries or with the $3.00-a-day poverty rate.</p>","OTHER_DOC__GLOBAL":"<p><strong>URL:</strong></p>\n<p><a href=\"https://pip.worldbank.org/\">https://pip.worldbank.org/</a> </p>\n<p><strong>References:</strong></p>\n<p>For more information and methodology, please see: <a href=\"https://datanalytics.worldbank.org/PIP-Methodology/\">https://datanalytics.worldbank.org/PIP-Methodology/</a>. </p>\n<p>Also, consult: <a href=\"https://documents1.worldbank.org/curated/en/099503206032533226/pdf/IDU-e2e09dcf-0af2-481a-a60a-64adf28171d0.pdf\">https://documents1.worldbank.org/curated/en/099503206032533226/pdf/IDU-e2e09dcf-0af2-481a-a60a-64adf28171d0.pdf</a> </p>\n<p>For a short review see: <a href=\"https://www.worldbank.org/en/news/factsheet/2025/06/05/june-2025-update-to-global-poverty-lines\">https://www.worldbank.org/en/news/factsheet/2025/06/05/june-2025-update-to-global-poverty-lines</a> </p>\n<p>For a comprehensive link to related background papers, working papers and journal articles see: </p>\n<p><a href=\"https://pip.worldbank.org/publication\">https://pip.worldbank.org/publication</a>. </p>\n<p>A Measured Approach to Ending Poverty and Boosting Shared Prosperity: Concepts, Data, and the Twin Goals. (<a href=\"http://www.worldbank.org/en/research/publication/a-measured-approach-to-ending-poverty-and-boosting-shared-prosperity\">http://www.worldbank.org/en/research/publication/a-measured-approach-to-ending-poverty-and-boosting-shared-prosperity</a>) </p>","target_number":"1.1","goal_number":"1","indicator_sort_order":"01-01-01"};
+      opensdg.configForm.repoUrl = "https://github.com/open-sdg/open-sdg-data-starter";
+    
+  </script>
+  
+  
+  
+  <script src="https://open-sdg.org/open-sdg-config-form/2.4.0/bundle.js"></script>
+</div>
+<footer role="contentinfo">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <div id="footerLinks">
+                    <ul>
+                        <li>
+                            <a href="https://open-sdg.org">Built using Open SDG</a>
+                        </li>
+                        
+                        <li>
+                            <a href="/odd-senegal-site/contact-us">Contact us</a>
+                            
+                        </li>
+                        <li>
+                            
+                            <a href="https://twitter.com/MyTwitterAccount" target="_blank">Twitter</a>
+                            
+                        </li>
+                        <li>
+                            
+                            <a href="https://facebook.com/MyFacebookAccount" target="_blank">Facebook</a>
+                            
+                        </li>
+                        <li>
+                            <a href="/odd-senegal-site/about/cookies-and-privacy/">Cookies</a>
+                            
+                        </li>
+                        
+                        
+                        
+                        <li>
+                            <a href="/odd-senegal-site/config">Configuration</a>
+                        </li>
+                        </ul>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js" integrity="sha384-ficRBwtap/VLzILv81vIvgp30PoJYnlCm96tPpNYHXAf+h9SIThOZxxIzRUzbpAh" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js" integrity="sha384-jIAE3P7Re8BgMkT0XOtfQ6lzZgbDw/02WeRMJvXK3WMHBNynEx5xofqia1OHuGh0" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js" integrity="sha256-Y26AMvaIfrZ1EQU49pf6H4QzVTrOI8m9wQYKkftBt4s=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/patternomaly@1.3.2/dist/patternomaly.js" integrity="sha384-kdgUFNEbslNOEAQ/zFH9wjDORAbvN0KUYOpfJIJYPdjtzLXkZsMJAXU9HPpi5B5c" crossorigin="anonymous"></script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha384-eEX5kO4tdQpY+eTjDbZNPlMm4QhsK+kosSZtkzp+uZk0L5g0lSzmWXWHzKDoOzA7" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.3/dist/html2canvas.js" integrity="sha384-3qyhlVVDXXiWhzgKIoL/aw+uaXN5kyAFE0Jv2LGoV+nnQnum4ebt1QAtRbjnz9pL" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.2/dist/FileSaver.min.js" integrity="sha384-KQ8aykg/lc6595wSrMplFVs4kRS66x+EdkX7EQsJ2Pe6FX7l3tMqyD1Am0c2dKBG" crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+<script>translations['general'] = translations['general'] || {};
+    translations['general']['hide'] = 'hide';</script>
+
+<script>translations['search'] = translations['search'] || {};
+    translations['search']['search'] = 'Search';</script>
+
+<script src='/odd-senegal-site/assets/js/sdg.js?v=20260503132522'></script>
+
+
+    
+    
+    <script src="/odd-senegal-site/assets/js/custom.js?v=20260503132522"></script><script>
+    new indicatorInit();
+    new accessibilitySwitcher();
+</script>
+
+
+</body>
+</html>
