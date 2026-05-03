@@ -141,3 +141,15 @@ exclude:
   - Gemfile.lock
   - README.md
   - scripts/
+
+
+
+  exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - _config_prod.yml
