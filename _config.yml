@@ -1,39 +1,143 @@
-# Jekyll configuration for Open SDG platform
+# =============================================================================
+# _config.yml — Configuration principale Open SDG — Sénégal
+# Dépôt : ndaosaer/odd-senegal-site
+# Plateforme : https://ndaosaer.github.io/odd-senegal-site/
+# =============================================================================
 
-# Tell the Remote Theme plugin to use the Open SDG platform (Jekyll theme).
-remote_theme: open-sdg/open-sdg@2.4.0
+# ── Identité du site ──────────────────────────────────────────────────────────
+title: "Indicateurs ODD — Sénégal"
+description: >-
+  Plateforme nationale de suivi des Objectifs de Développement Durable
+  au Sénégal. Données 2000-2024 — ANSD / DMCI — Agenda 2030.
+baseurl: "/odd-senegal-site"
+url: "https://ndaosaer.github.io"
 
-# Replace this title as needed.
-title: general.site_title
-url: ""
-environment: staging
+# ── Langue par défaut ─────────────────────────────────────────────────────────
+# La plateforme est en français (comme le Canada en version française)
+languages:
+  - fr
 
-# Pages
-collections:
-  pages:
-    output: true
-    permalink: /:path/
-  posts:
-    output: true
-    permalink: /news/:year/:month/:day/:title.html
-  indicators:
-    output: true
-  goals:
-    output: true
+# ── Thème Open SDG ───────────────────────────────────────────────────────────
+remote_theme: open-sdg/open-sdg@2.3.0
 
-# Tell Jekyll to use the Remote Theme plugin.
+# ── Configuration Open SDG ───────────────────────────────────────────────────
+# Dépôt des données (à créer séparément sous ndaosaer/odd-senegal-data)
+remote_data_prefix: "https://ndaosaer.github.io/odd-senegal-data"
+
+# ── En-tête et navigation ────────────────────────────────────────────────────
+header:
+  # Logo ANSD en haut à gauche (optionnel)
+  logo: assets/img/logo_ansd.png
+  logo_alt: "Logo ANSD"
+  # Titre affiché dans la barre de navigation
+  title: "ODD Sénégal"
+
+# ── Page d'accueil ───────────────────────────────────────────────────────────
+frontpage_goals_grid:
+  title: "Objectifs de Développement Durable — Sénégal"
+  description: >-
+    Le Sénégal s'est engagé dans la réalisation de l'Agenda 2030 des Nations Unies.
+    Cette plateforme présente les progrès accomplis pour chacun des 17 Objectifs
+    de Développement Durable, sur la base de 241 indicateurs couvrant la période
+    2000-2024. Les scores sont calculés selon la méthode de l'indice composite
+    normalisé (OCDE, 2008) par l'ANSD — Division de la Méthodologie, de la
+    Coordination et de l'Innovation (DMCI).
+  show: true
+
+# ── Pied de page ─────────────────────────────────────────────────────────────
+footer:
+  links:
+    - text: "ANSD"
+      href: "https://www.ansd.sn"
+    - text: "ODD Nations Unies"
+      href: "https://sdgs.un.org/fr"
+    - text: "PSE Sénégal"
+      href: "https://www.sec.gouv.sn"
+  description: >-
+    Agence Nationale de la Statistique et de la Démographie (ANSD) — DMCI.
+    Mémoire de fin de formation, Analyste Statisticien, Dakar 2025.
+    Inspiré de la <a href="https://sdgcif-data-canada-oddcic-donnee.github.io/fr/">
+    plateforme canadienne CIF Open SDG</a>.
+  attribution: >-
+    Données : ONU, Banque Mondiale, FAO, OMS, PNUD, SDSN — Traitement : ANSD/DMCI 2025
+
+# ── Options d'affichage des indicateurs ──────────────────────────────────────
+# Activer les graphiques
+graph_title_from_series: false
+graph_color_set: default
+graph_default_breaks: false
+
+# Activer les feux tricolores (status des indicateurs)
+reporting_status:
+  status_types:
+    - value: complete
+      label: "Données disponibles"
+      hide: false
+    - value: notstarted
+      label: "Données non disponibles"
+      hide: false
+    - value: inprogress
+      label: "En cours de collecte"
+      hide: false
+  extra_fields:
+    - field: status
+      label: "Statut 2030"
+
+# ── Table des matières (navigation par ODD) ──────────────────────────────────
+goals:
+  # L'Open SDG utilise les 17 couleurs officielles ODD
+  - goal: 1
+    color: "#E5243B"
+  - goal: 2
+    color: "#DDA63A"
+  - goal: 3
+    color: "#4C9F38"
+  - goal: 4
+    color: "#C5192D"
+  - goal: 5
+    color: "#FF3A21"
+  - goal: 6
+    color: "#26BDE2"
+  - goal: 7
+    color: "#FCC30B"
+  - goal: 8
+    color: "#A21942"
+  - goal: 9
+    color: "#FD6925"
+  - goal: 10
+    color: "#DD1367"
+  - goal: 11
+    color: "#FD9D24"
+  - goal: 12
+    color: "#BF8B2E"
+  - goal: 13
+    color: "#3F7E44"
+  - goal: 14
+    color: "#0A97D9"
+  - goal: 15
+    color: "#56C02B"
+  - goal: 16
+    color: "#00689D"
+  - goal: 17
+    color: "#19486A"
+
+# ── Options des graphiques ────────────────────────────────────────────────────
+# Afficher les années sur l'axe X
+graph_year_range:
+  start: 2000
+  end: 2030
+
+# ── Permaliens ───────────────────────────────────────────────────────────────
+permalink: /:path/
+
+# ── Plugins Jekyll ───────────────────────────────────────────────────────────
 plugins:
   - jekyll-remote-theme
   - jekyll-open-sdg-plugins
 
-# Exclude some files/folders.
+# ── Exclusions ───────────────────────────────────────────────────────────────
 exclude:
-  - vendor
-  - scripts
-  - remotedata
   - Gemfile
   - Gemfile.lock
-  - README
   - README.md
-  - LICENSE
-
+  - scripts/
