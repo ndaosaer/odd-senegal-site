@@ -216,7 +216,7 @@ progress_status:
   status_types: []
 progressive_web_app: {}
 proxy_indicators: {}
-remote_data_prefix: https://open-sdg.org/open-sdg-data-starter
+remote_data_prefix: "https://ndaosaer.github.io/odd-senegal-data"
 reporting_status:
   title: status.reporting_status
   description: status.description
