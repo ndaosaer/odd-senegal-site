@@ -14,8 +14,39 @@ plugins:
   - jekyll-remote-theme
   - jekyll-open-sdg-plugins
 
+collections:
+  indicators:
+    output: true
+  goals:
+    output: true
+  posts:
+    output: true
+
+create_indicators:
+  layout: indicator
+
+create_goals:
+  layout: goal
+
+create_pages:
+  pages:
+    - folder: /
+      layout: frontpage
+    - folder: /goals
+      layout: goals
+    - folder: /reporting-status
+      layout: reportingstatus
+    - folder: /search
+      layout: search
+    - folder: /about
+      layout: page
+    - folder: /faq
+      layout: faq
+
 exclude:
   - Gemfile
   - Gemfile.lock
   - README.md
   - vendor
+  - scripts
+  - Makefile
