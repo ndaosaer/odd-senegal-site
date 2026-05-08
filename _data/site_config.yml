@@ -246,3 +246,7 @@ time_series_attributes:
   - field: DATA_LAST_UPDATE
     label: metadata_fields.national_data_update_url
 x_axis_label: ''
+
+
+
+automated_translation: false
