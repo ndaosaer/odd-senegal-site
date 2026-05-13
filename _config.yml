@@ -9,13 +9,6 @@ remote_data_prefix: "https://ndaosaer.github.io/odd-senegal-data"
 languages:
   - fr
 
-translations:
-  - class: TranslationInputSdgTranslations
-    source: https://github.com/open-sdg/sdg-translations.git
-    tag: "2.0.0"
-  - class: TranslationInputYaml
-    source: translations
-
 plugins:
   - jekyll-remote-theme
   - jekyll-open-sdg-plugins
@@ -44,5 +37,3 @@ exclude:
   - README.md
   - vendor
   - scripts
-
-sdg_build_js_translations: false
