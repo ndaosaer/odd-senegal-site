@@ -9,6 +9,11 @@ remote_data_prefix: "https://ndaosaer.github.io/odd-senegal-data"
 languages:
   - fr
 
+translations:
+  - base_url: "https://open-sdg.github.io/sdg-translations/translations/"
+    tag: "2.1.0"
+    namespace: "SDG"
+
 plugins:
   - jekyll-remote-theme
   - jekyll-open-sdg-plugins
