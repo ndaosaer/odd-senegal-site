@@ -10,9 +10,11 @@ languages:
   - fr
 
 translations:
-  - base_url: "https://open-sdg.github.io/sdg-translations/translations/"
-    tag: "2.1.0"
-    namespace: "SDG"
+  - class: TranslationInputSdgTranslations
+    source: https://github.com/open-sdg/sdg-translations.git
+    tag: "2.0.0"
+  - class: TranslationInputYaml
+    source: translations
 
 plugins:
   - jekyll-remote-theme
@@ -42,3 +44,5 @@ exclude:
   - README.md
   - vendor
   - scripts
+
+sdg_build_js_translations: false
