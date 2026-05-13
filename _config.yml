@@ -4,7 +4,6 @@ baseurl: "/odd-senegal-site"
 url: "https://ndaosaer.github.io"
 
 remote_theme: open-sdg/open-sdg@2.3.0
-
 remote_data_prefix: "https://ndaosaer.github.io/odd-senegal-data"
 
 languages:
@@ -19,6 +18,8 @@ collections:
     output: true
   goals:
     output: true
+  pages:
+    output: true
   posts:
     output: true
 
@@ -28,20 +29,7 @@ create_indicators:
 create_goals:
   layout: goal
 
-create_pages:
-  pages:
-    - folder: /
-      layout: frontpage
-    - folder: /goals
-      layout: goals
-    - folder: /reporting-status
-      layout: reportingstatus
-    - folder: /search
-      layout: search
-    - folder: /about
-      layout: page
-    - folder: /faq
-      layout: faq
+create_pages: true
 
 exclude:
   - Gemfile
@@ -49,4 +37,3 @@ exclude:
   - README.md
   - vendor
   - scripts
-  - Makefile
