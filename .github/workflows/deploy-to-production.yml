@@ -1,0 +1,58 @@
+name: Deploy to production
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+  repository_dispatch:
+    types: [data-update]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+          bundler-cache: false
+
+      - name: Check _data directory
+        run: |
+          echo "=== _data/ ==="
+          find _data -type f | sort
+          echo ""
+          echo "=== schema.yml ==="
+          cat _data/schema.yml || echo "ABSENT"
+
+      - name: Build Jekyll site
+        run: bundle exec jekyll build --config _config.yml --future
+        env:
+          JEKYLL_ENV: production
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
