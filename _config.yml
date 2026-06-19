@@ -1,39 +1,38 @@
-title: "SDG Indicators — Senegal"
-description: "National platform for tracking SDGs in Senegal. ANSD / DMCI."
-baseurl: "/odd-senegal-site"
-url: "https://ndaosaer.github.io"
+# Jekyll configuration for Open SDG platform
 
-remote_theme: open-sdg/open-sdg@2.3.0
-remote_data_prefix: "https://ndaosaer.github.io/odd-senegal-data"
+# Tell the Remote Theme plugin to use the Open SDG platform (Jekyll theme).
+remote_theme: open-sdg/open-sdg@2.4.0
 
-languages:
-  - en
+# Replace this title as needed.
+title: general.site_title
+url: ""
+environment: staging
 
-plugins:
-  - jekyll-remote-theme
-  - jekyll-open-sdg-plugins
-
+# Pages
 collections:
+  pages:
+    output: true
+    permalink: /:path/
+  posts:
+    output: true
+    permalink: /news/:year/:month/:day/:title.html
   indicators:
     output: true
   goals:
     output: true
-  pages:
-    output: true
-  posts:
-    output: true
 
-create_indicators:
-  layout: indicator
+# Tell Jekyll to use the Remote Theme plugin.
+plugins:
+  - jekyll-remote-theme
+  - jekyll-open-sdg-plugins
 
-create_goals:
-  layout: goal
-
-create_pages: true
-
+# Exclude some files/folders.
 exclude:
-  - Gemfile
-  - Gemfile.lock
-  - README.md
   - vendor
   - scripts
+  - remotedata
+  - Gemfile
+  - Gemfile.lock
+  - README
+  - README.md
+  - LICENSE
