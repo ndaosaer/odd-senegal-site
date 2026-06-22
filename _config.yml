@@ -8,6 +8,10 @@ title: general.site_title
 url: ""
 environment: staging
 
+# Tell the platform where to find the hosted data repository.
+# This points to the GitHub Pages output of odd-senegal-data.
+remote_data_prefix: https://ndaosaer.github.io/odd-senegal-data
+
 # Pages
 collections:
   pages:
