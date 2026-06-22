@@ -33,9 +33,6 @@ jobs:
       - name: Install gems
         run: bundle install
 
-      - name: Patch gem and schema
-        run: python3 scripts/patch_schema.py
-
       - name: Build Jekyll site
         run: bundle exec jekyll build --config _config.yml --future
         env:
